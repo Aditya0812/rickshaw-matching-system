@@ -1,0 +1,56 @@
+services:
+  # ---------------------------------
+  # Backend Web Service (Node.js)
+  # ---------------------------------
+  - type: web
+    name: rickshaw-backend
+    env: node
+    rootDir: backend # Build within the backend folder
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: FRONTEND_URL # Dynamically link the frontend's Render URL
+        fromService:
+          type: web
+          name: rickshaw-frontend
+          envVarKey: RENDER_EXTERNAL_URL
+      
+      # IMPORTANT: Firebase Secrets must NOT be synced in this file.
+      # You will paste these directly into the Render Dashboard during setup.
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY_ID
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_CLIENT_ID
+        sync: false
+      - key: FIREBASE_DATABASE_URL
+        sync: false
+
+  # ---------------------------------
+  # Frontend Static Site (React)
+  # ---------------------------------
+  - type: web
+    name: rickshaw-frontend
+    env: static
+    rootDir: frontend # Build within the frontend folder
+    buildCommand: npm install && npm run build
+    staticPublishPath: build
+    fallbackDocumentPath: /index.html # Required for React Router (Single Page App mapping)
+    envVars:
+      # Inject the backend URL dynamically at build-time
+      - key: REACT_APP_API_URL
+        fromService:
+          type: web
+          name: rickshaw-backend
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: REACT_APP_SOCKET_URL
+        fromService:
+          type: web
+          name: rickshaw-backend
+          envVarKey: RENDER_EXTERNAL_URL
