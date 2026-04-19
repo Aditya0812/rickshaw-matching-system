@@ -41,7 +41,10 @@ services:
     rootDir: frontend # Build within the frontend folder
     buildCommand: npm install && npm run build
     staticPublishPath: build
-    fallbackDocumentPath: /index.html # Required for React Router (Single Page App mapping)
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
     envVars:
       # Inject the backend URL dynamically at build-time
       - key: REACT_APP_API_URL
