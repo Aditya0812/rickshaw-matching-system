@@ -346,4 +346,4 @@ REACT_APP_SOCKET_URL=https://your-backend.onrender.com
 - **Socket.IO over plain WebSockets** — Provides rooms, reconnection, and fallback transports out of the box.
 - **Singleton Socket** — The frontend uses a single shared socket instance to avoid duplicate connections across components.
 - **Factory route pattern** — `rideRoutes.js` exports a factory function that receives the `io` instance, enabling controllers to emit events without importing socket globally.
-- **Mock ETA** — ETA is a random value (2–10 min) generated at acceptance time. In production this would be computed from driver location.
+- **Mock ETA** — ETA is a random value (2–10 min) generated at acceptance time. In production this would be computed from driver location..
