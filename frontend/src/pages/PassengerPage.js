@@ -4,8 +4,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
-import { createRideRequest, cancelRide } from "../services/api";
+import { createRideRequest, cancelRide, fetchActiveRideForPassenger } from "../services/api";
 import { getSocket, SOCKET_EVENTS } from "../services/socket";
+import EditProfileModal from "../components/EditProfileModal";
 
 const PassengerPage = () => {
   const { user, stops, stopsLoading, logout } = useApp();
@@ -18,6 +19,7 @@ const PassengerPage = () => {
   const [notification, setNotification]       = useState(null); // driver acceptance info
   const [loading, setLoading]                 = useState(false);
   const [error, setError]                     = useState("");
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // ── Socket setup ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -48,6 +50,21 @@ const PassengerPage = () => {
       socket.off(SOCKET_EVENTS.RIDE_UPDATE, onRideUpdate);
     };
   }, [user.id, activeRide?.id]);
+
+  // ── Load active ride on start ─────────────────────────────────────────────
+  useEffect(() => {
+    const loadActiveRide = async () => {
+      try {
+        const ride = await fetchActiveRideForPassenger(user.id);
+        if (ride) {
+          setActiveRide(ride);
+        }
+      } catch (err) {
+        console.error("Failed to recover active ride:", err);
+      }
+    };
+    loadActiveRide();
+  }, [user.id]);
 
   // ── Request ride ─────────────────────────────────────────────────────────
   const handleRequestRide = async (e) => {
@@ -132,12 +149,12 @@ const PassengerPage = () => {
                   Cancel Ride
                 </button>
               )}
-              {activeRide.status === "accepted" && (
+              {(activeRide.status === "accepted" || activeRide.status === "completed") && (
                 <button
                   className="btn btn-ghost btn-sm"
                   onClick={() => { setActiveRide(null); setNotification(null); }}
                 >
-                  Book Another Ride
+                  {activeRide.status === "completed" ? "Trip Ended — Book Another Ride" : "Dismiss (Hide Active Trip)"}
                 </button>
               )}
             </div>
@@ -191,10 +208,16 @@ const PassengerPage = () => {
           </div>
         )}
 
-        <button className="btn btn-ghost btn-full" onClick={handleLogout}>
-          ← Logout
-        </button>
+        <div style={{display: 'flex', gap: '10px', marginTop: '1rem'}}>
+          <button className="btn btn-ghost btn-full" onClick={() => setIsEditModalOpen(true)}>
+            ✏️ Edit Profile
+          </button>
+          <button className="btn btn-ghost btn-full" onClick={handleLogout}>
+            ← Logout
+          </button>
+        </div>
       </div>
+      <EditProfileModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} />
     </div>
   );
 };
